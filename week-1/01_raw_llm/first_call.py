@@ -12,4 +12,26 @@ response = client.models.generate_content(
     contents="Explain what is API in short."
 )
 
-print(response)
+
+usage = response.usage_metadata
+
+print("\nResponse:")
+print(response.text)
+
+print("\nModel:")
+print(response.model_version)
+
+print("\nInput tokens:")
+print(usage.prompt_token_count)
+
+print("\nOutput tokens:")
+print(usage.candidates_token_count)
+
+print("\nThought tokens:")
+print(usage.thoughts_token_count)
+
+print("\nTotal tokens:")
+print(usage.total_token_count)
+
+print("\nFinish reason:")
+print(response.candidates[0].finish_reason)
