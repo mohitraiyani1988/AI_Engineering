@@ -1,0 +1,10 @@
+@use '../shared-chat';
+
+.template-layout { display: grid; gap: 1.25rem; grid-template-columns: minmax(240px, 320px) 1fr; }
+.template-panel { align-self: start; background: white; border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); display: grid; gap: 1rem; padding: 1.25rem; }
+.template-panel label { display: grid; gap: 0.4rem; }
+.template-panel select, .template-panel input { width: 100%; }
+.description { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.chat-card { min-height: 620px; }
+.error { margin: 0; }
+@media (max-width: 800px) { .template-layout { grid-template-columns: 1fr; } }

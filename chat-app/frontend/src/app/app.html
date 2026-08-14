@@ -1,0 +1,20 @@
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/general-chat">
+      <span class="brand-mark">AI</span>
+      <span>
+        <strong>Model Lab</strong>
+        <small>LangChain chat playground</small>
+      </span>
+    </a>
+
+    <nav aria-label="Main navigation">
+      <a routerLink="/general-chat" routerLinkActive="active">General Chat</a>
+      <a routerLink="/template-chat" routerLinkActive="active">Template Chat</a>
+    </nav>
+  </header>
+
+  <main>
+    <router-outlet />
+  </main>
+</div>

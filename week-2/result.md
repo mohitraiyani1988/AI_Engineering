@@ -59,3 +59,18 @@ Total latency:       5263 ms
 Time to first token: 3684 ms
 Stream chunks:       17
 Error:               none
+
+LANGCHAIN INVOCATION REPORT
+======================================================================
+Provider:            groq
+Model:               llama-3.3-70b-versatile
+Method:              astream
+Input tokens:        56
+Output tokens:       281
+Total tokens:        337
+Reasoning tokens:    not provided
+Finish reason:       stop
+Total latency:       1396 ms
+Time to first token: 441 ms
+Stream chunks:       283
+Error:               none

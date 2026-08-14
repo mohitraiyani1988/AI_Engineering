@@ -1,0 +1,44 @@
+<header class="page-heading">
+  <div>
+    <span class="eyebrow">Reusable prompts</span>
+    <h1>Template Chat</h1>
+    <p>Fill structured inputs and see how a controlled prompt produces a model response.</p>
+  </div>
+</header>
+
+<div class="template-layout">
+  <form class="template-panel" (ngSubmit)="generate()">
+    <label>Template
+      <select name="template" [(ngModel)]="selectedTemplateId" (ngModelChange)="resetInputs()">
+        @for (template of templates(); track template.id) { <option [value]="template.id">{{ template.name }}</option> }
+      </select>
+    </label>
+    @if (selectedTemplate; as template) {
+      <p class="description">{{ template.description }}</p>
+      @for (field of template.fields; track field.name) {
+        <label>{{ field.label }}
+          @if (field.type === 'select') {
+            <select [name]="field.name" [(ngModel)]="inputs[field.name]" [required]="field.required">
+              @for (option of field.options; track option) { <option [value]="option">{{ option }}</option> }
+            </select>
+          } @else {
+            <input [name]="field.name" [type]="field.type" [(ngModel)]="inputs[field.name]" [required]="field.required" />
+          }
+        </label>
+      }
+    }
+    <label>Model
+      <select name="model" [(ngModel)]="selectedModel">
+        @for (model of models(); track model.id) {
+          <option [value]="model.id" [disabled]="!model.configured">{{ model.display_name }}{{ model.configured ? '' : ' (key missing)' }}</option>
+        }
+      </select>
+    </label>
+    <button type="submit" [disabled]="loading() || !selectedModel || !selectedTemplate">{{ loading() ? 'Streaming…' : 'Generate' }}</button>
+    @if (error()) { <p class="error">{{ error() }}</p> }
+  </form>
+
+  <section class="chat-card">
+    <app-message-list [messages]="messages()" />
+  </section>
+</div>

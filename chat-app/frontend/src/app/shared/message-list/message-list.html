@@ -1,0 +1,37 @@
+<section class="messages" aria-live="polite">
+  @if (messages().length === 0) {
+    <div class="empty-state">
+      <span>✦</span>
+      <h2>Start a conversation</h2>
+      <p>Select a configured model, enter a message, and inspect the response details.</p>
+    </div>
+  }
+
+  @for (message of messages(); track message.id) {
+    <article class="message" [class.user]="message.role === 'user'">
+      <div class="message-label">{{ message.role === 'user' ? 'You' : 'Assistant' }}</div>
+      <div class="bubble">
+        <p>{{ message.content }}@if (message.streaming) {<span class="cursor">▍</span>}</p>
+        @if (message.details) {
+          <details>
+            <summary>Response details</summary>
+            <div class="metrics">
+              <span><small>Provider</small>{{ message.details.provider }}</span>
+              <span><small>Model</small>{{ message.details.model_name }}</span>
+              <span><small>Input tokens</small>{{ message.details.input_tokens ?? 'N/A' }}</span>
+              <span><small>Output tokens</small>{{ message.details.output_tokens ?? 'N/A' }}</span>
+              <span><small>Total tokens</small>{{ message.details.total_tokens ?? 'N/A' }}</span>
+              <span><small>Reasoning tokens</small>{{ message.details.reasoning_tokens ?? 'N/A' }}</span>
+              <span><small>Latency</small>{{ message.details.latency_ms }} ms</span>
+              <span><small>First token</small>{{ message.details.time_to_first_token_ms ?? 'N/A' }} ms</span>
+              <span><small>Finish reason</small>{{ message.details.finish_reason ?? 'N/A' }}</span>
+              <span><small>Chunks</small>{{ message.details.chunk_count }}</span>
+            </div>
+            <h4>Raw metadata</h4>
+            <pre>{{ { usage: message.details.raw_usage_metadata, response: message.details.raw_response_metadata } | json }}</pre>
+          </details>
+        }
+      </div>
+    </article>
+  }
+</section>

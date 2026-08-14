@@ -1,0 +1,41 @@
+<header class="page-heading">
+  <div>
+    <span class="eyebrow">Free-form conversation</span>
+    <h1>General Chat</h1>
+    <p>Chat with any configured provider and inspect the metadata behind every answer.</p>
+  </div>
+  <button class="secondary" type="button" (click)="clear()" [disabled]="messages().length === 0">Clear chat</button>
+</header>
+
+<section class="chat-card">
+  <div class="toolbar">
+    <label>
+      Model
+      <select [(ngModel)]="selectedModel" [disabled]="loading()">
+        @for (model of models(); track model.id) {
+          <option [value]="model.id" [disabled]="!model.configured">
+            {{ model.display_name }} · {{ model.model_name }}{{ model.configured ? '' : ' (key missing)' }}
+          </option>
+        }
+      </select>
+    </label>
+    <span class="status" [class.online]="selectedModel">{{ selectedModel ? 'Ready' : 'No configured model' }}</span>
+  </div>
+
+  <app-message-list [messages]="messages()" />
+
+  @if (error()) { <p class="error">{{ error() }}</p> }
+
+  <form class="composer" (ngSubmit)="send()">
+    <textarea
+      name="prompt"
+      [(ngModel)]="prompt"
+      placeholder="Ask anything about AI engineering…"
+      rows="3"
+      [disabled]="loading()"
+    ></textarea>
+    <button type="submit" [disabled]="loading() || !prompt.trim() || !selectedModel">
+      {{ loading() ? 'Streaming…' : 'Send' }}
+    </button>
+  </form>
+</section>
