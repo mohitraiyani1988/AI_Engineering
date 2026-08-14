@@ -255,3 +255,66 @@ Planned flow:
     LangChain
         ↓
     Understand why the abstraction exists
+
+
+## Provider Comparison — Initial Observation
+
+Gemini 3.5 Flash and Groq/Llama 3.3 70B produced broadly similar
+quality for the simple API-explanation prompt.
+
+The major difference observed in this experiment was latency:
+Groq/Llama 3.3 70B was significantly faster.
+
+Therefore, a simple prompt is not sufficient to determine which
+model is better. Model evaluation should use multiple workloads
+such as reasoning, coding, architecture, and instruction following.
+
+## Exercise 3 — LangChain
+
+### Why was LangChain introduced?
+
+Different LLM providers expose different SDKs and APIs.
+
+For example, Gemini uses:
+
+    client.models.generate_content(...)
+
+while Groq uses:
+
+    client.chat.completions.create(...)
+
+LangChain provides a common abstraction over these providers.
+
+With LangChain, both providers can be called using:
+
+    llm.invoke(prompt)
+
+The provider-specific implementation is hidden behind the LangChain integration.
+
+### What does LangChain provide?
+
+LangChain provides abstractions/components for:
+
+- LLM/chat models
+- Prompt templates
+- Messages
+- Output parsing
+- Document loaders
+- Retrievers
+- Vector stores
+- Tools
+- Agents
+- Chains/workflows
+- Observability/integration capabilities
+
+### Important observation
+
+LangChain does NOT make the LLM smarter.
+
+It is an application framework/abstraction layer that makes it easier to compose LLMs with other application components.
+
+### Native SDK vs LangChain
+
+For a simple application, a provider's native SDK may be simpler.
+
+LangChain becomes more useful as the application needs multiple providers, prompts, structured outputs, retrieval, tools, agents, workflows, etc.
