@@ -11,6 +11,7 @@ from langchain_core.runnables import RunnableLambda
 from app.main import app
 from app.config import get_settings
 from app.models import ModelDefinition
+from app.review_schemas import ReviewAnalysis
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -66,17 +67,18 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(templates.json()[0]["id"], "explain-concept")
 
     def test_configured_frontend_origin_is_allowed(self) -> None:
+        configured_origin = get_settings().cors_allowed_origins[0]
         response = self.client.options(
             "/models",
             headers={
-                "Origin": "http://localhost:4200",
+                "Origin": configured_origin,
                 "Access-Control-Request-Method": "GET",
             },
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.headers["access-control-allow-origin"],
-            "http://localhost:4200",
+            configured_origin,
         )
 
     def test_cors_origins_are_read_from_environment(self) -> None:
@@ -123,6 +125,7 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(details["total_tokens"], 6)
         self.assertEqual(details["finish_reason"], "stop")
         self.assertEqual(details["chunk_count"], 2)
+        self.assertEqual(details["response_content"], "Hello world")
 
     @patch("app.routes.chat.create_chat_model")
     def test_template_chat_stream_contract(self, create_model) -> None:
@@ -140,6 +143,83 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(events[0][1]["mode"], "template")
         self.assertEqual(events[-1][0], "done")
+
+    @patch("app.routes.reviews.analyze_review")
+    def test_review_analysis_stream_returns_each_model_result(self, analyze) -> None:
+        async def result_for(model_id, _review, strategy):
+            return {
+                "model_id": model_id,
+                "provider": model_id.split("-")[0],
+                "model_name": "test-model",
+                "strategy": strategy,
+                "analysis": ReviewAnalysis(
+                    sentiment="negative",
+                    rating=2,
+                    summary="Good delivery but poor battery life.",
+                    pros=["fast delivery"],
+                    cons=["short battery life"],
+                    recommendation=False,
+                ).model_dump(),
+                "details": {"total_tokens": 25},
+            }
+
+        analyze.side_effect = result_for
+        response = self.client.post(
+            "/reviews/analyze/stream",
+            json={
+                "review": "Fast delivery, but the battery lasts only two hours.",
+                "model_ids": ["gemini-flash", "groq-llama", "mistral-small"],
+                "strategy": "native",
+            },
+        )
+        events = parse_sse(response.text)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(events[0][0], "start")
+        self.assertEqual(
+            sum(name == "model_result" for name, _ in events),
+            3,
+        )
+        self.assertEqual(events[-1][0], "done")
+        self.assertEqual(events[-1][1]["successful"], 3)
+        self.assertEqual(events[-1][1]["failed"], 0)
+
+    @patch("app.routes.reviews.analyze_review")
+    def test_review_analysis_keeps_other_results_when_one_model_fails(self, analyze) -> None:
+        async def result_for(model_id, _review, strategy):
+            if model_id == "mistral-small":
+                raise ValueError("Invalid structured response")
+            return {
+                "model_id": model_id,
+                "provider": "test",
+                "model_name": "test-model",
+                "strategy": strategy,
+                "analysis": ReviewAnalysis(
+                    sentiment="neutral",
+                    rating=3,
+                    summary="Mixed review.",
+                    pros=[],
+                    cons=[],
+                    recommendation=False,
+                ).model_dump(),
+                "details": {},
+            }
+
+        analyze.side_effect = result_for
+        response = self.client.post(
+            "/reviews/analyze/stream",
+            json={
+                "review": "The product has a mixture of good and bad qualities.",
+                "model_ids": ["gemini-flash", "mistral-small"],
+                "strategy": "parser",
+            },
+        )
+        events = parse_sse(response.text)
+
+        self.assertEqual(sum(name == "model_result" for name, _ in events), 1)
+        self.assertEqual(sum(name == "model_error" for name, _ in events), 1)
+        self.assertEqual(events[-1][1]["successful"], 1)
+        self.assertEqual(events[-1][1]["failed"], 1)
 
 
 if __name__ == "__main__":

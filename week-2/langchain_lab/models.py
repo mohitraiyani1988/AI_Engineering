@@ -27,7 +27,7 @@ def create_chat_model(provider: Provider) -> BaseChatModel:
 
     if provider == "groq":
         return ChatGroq(
-            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+            model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
             api_key=_required_env("GROQ_API_KEY"),
         )
 

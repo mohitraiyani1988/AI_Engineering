@@ -17,7 +17,7 @@ Explain what an API is to a junior software developer in exactly 3 paragraphs. I
 start = time.perf_counter()
 
 response = client.chat.completions.create(
-    model="llama-3.3-70b-versatile",
+    model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
     messages=[
         {
             "role": "user",

@@ -4,6 +4,7 @@ FastAPI backend for two Angular application modes:
 
 1. General conversational chat with history.
 2. Template-based chat using `ChatPromptTemplate` and LCEL.
+3. Parallel customer-review analysis with structured Pydantic output.
 
 Both modes support Gemini, Groq, and Mistral through a shared LangChain model
 registry. Responses are streamed as Server-Sent Events (SSE), followed by
@@ -82,6 +83,35 @@ render the template form dynamically.
     "number_of_examples": 2
   }
 }
+```
+
+## Review analysis
+
+`POST /reviews/analyze/stream`
+
+```json
+{
+  "review": "Fast delivery and good packaging, but the battery lasts only two hours.",
+  "model_ids": ["gemini-flash", "groq-llama", "mistral-small"],
+  "strategy": "native"
+}
+```
+
+Use `strategy: "native"` for each provider's structured-output integration or
+`strategy: "parser"` to exercise `PydanticOutputParser`. The backend starts all
+selected provider pipelines concurrently and emits `model_result` or
+`model_error` as each finishes. A single provider failure does not cancel the
+other results.
+
+Every successful analysis is validated as:
+
+```text
+sentiment: positive | neutral | negative
+rating: 1..5
+summary: string
+pros: string[]
+cons: string[]
+recommendation: boolean
 ```
 
 ## SSE events

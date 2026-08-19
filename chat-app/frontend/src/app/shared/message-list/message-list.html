@@ -27,6 +27,8 @@
               <span><small>Finish reason</small>{{ message.details.finish_reason ?? 'N/A' }}</span>
               <span><small>Chunks</small>{{ message.details.chunk_count }}</span>
             </div>
+            <h4>AI response content</h4>
+            <pre>{{ message.details.response_content || 'No raw content was provided.' }}</pre>
             <h4>Raw metadata</h4>
             <pre>{{ { usage: message.details.raw_usage_metadata, response: message.details.raw_response_metadata } | json }}</pre>
           </details>

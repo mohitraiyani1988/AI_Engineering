@@ -1,0 +1,119 @@
+<header class="page-heading">
+  <div>
+    <span class="eyebrow">Structured output comparison</span>
+    <h1>Review Analysis</h1>
+    <p>Send one customer review to multiple models and compare validated results.</p>
+  </div>
+</header>
+
+<section class="review-composer">
+  <label class="review-input">
+    Customer review
+    <textarea
+      [(ngModel)]="review"
+      rows="5"
+      placeholder="Example: Delivery was fast and the packaging was excellent, but the battery lasts only two hours."
+      [disabled]="loading()"
+    ></textarea>
+  </label>
+
+  <div class="controls">
+    <fieldset>
+      <legend>Models</legend>
+      @for (model of models(); track model.id) {
+        <label class="check-option" [class.disabled]="!model.configured">
+          <input
+            type="checkbox"
+            [checked]="selectedModelIds().has(model.id)"
+            [disabled]="!model.configured || loading()"
+            (change)="toggleModel(model.id, $any($event.target).checked)"
+          />
+          <span><strong>{{ model.display_name }}</strong><small>{{ model.model_name }}</small></span>
+          @if (!model.configured) { <em>Key missing</em> }
+        </label>
+      }
+    </fieldset>
+
+    <label>
+      Output strategy
+      <select [(ngModel)]="strategy" [disabled]="loading()">
+        <option value="native">Native structured output</option>
+        <option value="parser">Pydantic output parser</option>
+      </select>
+    </label>
+
+    <button
+      type="button"
+      (click)="analyze()"
+      [disabled]="loading() || !review.trim() || selectedModelIds().size === 0"
+    >
+      {{ loading() ? 'Comparing models…' : 'Analyze review' }}
+    </button>
+  </div>
+
+  @if (error()) { <p class="global-error">{{ error() }}</p> }
+</section>
+
+@if (cards().length > 0) {
+  <section class="results" aria-live="polite">
+    @for (card of cards(); track card.model.id) {
+      <article class="result-card" [class.pending]="card.status === 'pending'" [class.failed]="card.status === 'error'">
+        <header>
+          <div>
+            <span class="provider">{{ card.model.provider }}</span>
+            <h2>{{ card.model.display_name }}</h2>
+            <small>{{ card.model.model_name }}</small>
+          </div>
+          <span class="state">{{ card.status }}</span>
+        </header>
+
+        @if (card.status === 'pending') {
+          <div class="loading-state"><span></span><p>Analyzing review…</p></div>
+        } @else if (card.status === 'error') {
+          <div class="error-state"><strong>Analysis failed</strong><p>{{ card.error }}</p></div>
+        } @else if (card.result; as result) {
+          <div class="analysis">
+            <div class="verdict">
+              <span class="sentiment" [class]="result.analysis.sentiment">{{ result.analysis.sentiment }}</span>
+              <strong>{{ result.analysis.rating }}/5</strong>
+            </div>
+            <p class="summary">{{ result.analysis.summary }}</p>
+
+            <div class="lists">
+              <div><h3>Pros</h3>
+                @if (result.analysis.pros.length) {
+                  <ul>@for (pro of result.analysis.pros; track pro) { <li>{{ pro }}</li> }</ul>
+                } @else { <p>None identified</p> }
+              </div>
+              <div><h3>Cons</h3>
+                @if (result.analysis.cons.length) {
+                  <ul>@for (con of result.analysis.cons; track con) { <li>{{ con }}</li> }</ul>
+                } @else { <p>None identified</p> }
+              </div>
+            </div>
+
+            <div class="recommendation">
+              Would recommend <strong>{{ result.analysis.recommendation ? 'Yes' : 'No' }}</strong>
+            </div>
+
+            <details>
+              <summary>Response details</summary>
+              <dl>
+                <div><dt>Strategy</dt><dd>{{ result.strategy }}</dd></div>
+                <div><dt>Input tokens</dt><dd>{{ result.details.input_tokens ?? 'N/A' }}</dd></div>
+                <div><dt>Output tokens</dt><dd>{{ result.details.output_tokens ?? 'N/A' }}</dd></div>
+                <div><dt>Total tokens</dt><dd>{{ result.details.total_tokens ?? 'N/A' }}</dd></div>
+                <div><dt>Latency</dt><dd>{{ result.details.latency_ms }} ms</dd></div>
+                <div><dt>Finish reason</dt><dd>{{ result.details.finish_reason ?? 'N/A' }}</dd></div>
+              </dl>
+              <h4>AI response content</h4>
+              <pre>{{ result.details.response_content || 'No raw content was provided.' }}</pre>
+              <h4>Provider metadata</h4>
+              <pre>{{ { usage: result.details.raw_usage_metadata, response: result.details.raw_response_metadata } | json }}</pre>
+            </details>
+          </div>
+        }
+      </article>
+    }
+  </section>
+}

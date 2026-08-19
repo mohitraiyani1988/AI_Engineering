@@ -23,6 +23,8 @@ cd chat-app\backend
 
 API documentation: <http://127.0.0.1:8000/docs>
 
+The UI contains General Chat, Template Chat, and multi-model Review Analysis.
+
 ## Start the frontend
 
 In another terminal, from the repository root:

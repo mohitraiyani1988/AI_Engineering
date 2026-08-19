@@ -1,7 +1,8 @@
 from collections.abc import AsyncGenerator
+import json
 from typing import Any
 
-from langchain_core.messages import AIMessageChunk, BaseMessage
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 from langchain_core.runnables import Runnable
 
 from app.models import ModelDefinition
@@ -28,9 +29,31 @@ def find_metadata_value(metadata: dict[str, Any], *names: str) -> Any:
     return None
 
 
+def extract_response_content(response: AIMessage | AIMessageChunk) -> str:
+    """Return visible text or structured tool-call arguments from an AI response."""
+    text = content_to_text(response.content)
+    if text:
+        return text
+
+    tool_calls = getattr(response, "tool_calls", None)
+    if tool_calls:
+        return json.dumps(tool_calls, ensure_ascii=False, indent=2, default=str)
+
+    provider_tool_calls = response.additional_kwargs.get("tool_calls")
+    if provider_tool_calls:
+        return json.dumps(
+            provider_tool_calls,
+            ensure_ascii=False,
+            indent=2,
+            default=str,
+        )
+
+    return ""
+
+
 def normalize_details(
     definition: ModelDefinition,
-    response: AIMessageChunk,
+    response: AIMessage | AIMessageChunk,
     *,
     latency_ms: int,
     time_to_first_token_ms: int | None,
@@ -59,6 +82,7 @@ def normalize_details(
         "latency_ms": latency_ms,
         "time_to_first_token_ms": time_to_first_token_ms,
         "chunk_count": chunk_count,
+        "response_content": extract_response_content(response),
         "raw_usage_metadata": usage,
         "raw_response_metadata": metadata,
     }

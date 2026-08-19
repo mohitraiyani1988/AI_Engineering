@@ -34,6 +34,7 @@ export interface ResponseDetails {
   latency_ms: number;
   time_to_first_token_ms: number | null;
   chunk_count: number;
+  response_content: string;
   raw_usage_metadata: Record<string, unknown>;
   raw_response_metadata: Record<string, unknown>;
 }
@@ -47,6 +48,31 @@ export interface ChatMessage {
 }
 
 export interface SseEvent<T = Record<string, unknown>> {
-  event: 'start' | 'token' | 'done' | 'error';
+  event: 'start' | 'token' | 'done' | 'error' | 'model_result' | 'model_error';
   data: T;
+}
+
+export interface ReviewAnalysis {
+  sentiment: 'positive' | 'neutral' | 'negative';
+  rating: number;
+  summary: string;
+  pros: string[];
+  cons: string[];
+  recommendation: boolean;
+}
+
+export interface ReviewModelResult {
+  model_id: string;
+  provider: string;
+  model_name: string;
+  strategy: 'native' | 'parser';
+  analysis: ReviewAnalysis;
+  details: ResponseDetails;
+}
+
+export interface ReviewResultCard {
+  model: ModelOption;
+  status: 'pending' | 'success' | 'error';
+  result?: ReviewModelResult;
+  error?: string;
 }

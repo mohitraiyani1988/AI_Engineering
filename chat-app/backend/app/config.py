@@ -22,7 +22,7 @@ class Settings(BaseModel):
     groq_api_key: str = ""
     mistral_api_key: str = ""
     gemini_model: str = "gemini-3.6-flash"
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-20b"
     mistral_model: str = "mistral-small-latest"
     cors_allowed_origins: list[str] = Field(
         default_factory=lambda: [
@@ -47,7 +47,7 @@ def get_settings() -> Settings:
         groq_api_key=os.getenv("GROQ_API_KEY", ""),
         mistral_api_key=os.getenv("MISTRAL_API_KEY", ""),
         gemini_model=os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
-        groq_model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        groq_model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
         mistral_model=os.getenv("MISTRAL_MODEL", "mistral-small-latest"),
         cors_allowed_origins=cors_origins,
     )

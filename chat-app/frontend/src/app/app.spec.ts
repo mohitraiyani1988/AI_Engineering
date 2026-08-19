@@ -22,5 +22,6 @@ describe('App', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent;
     expect(text).toContain('General Chat');
     expect(text).toContain('Template Chat');
+    expect(text).toContain('Review Analysis');
   });
 });

@@ -25,6 +25,10 @@ export class ChatApiService {
     return this.stream(`/templates/${encodeURIComponent(templateId)}/stream`, body);
   }
 
+  streamReviewAnalysis(body: object): AsyncGenerator<SseEvent> {
+    return this.stream('/reviews/analyze/stream', body);
+  }
+
   private async *stream(path: string, body: object): AsyncGenerator<SseEvent> {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',

@@ -6,6 +6,7 @@ Angular 21 frontend for the FastAPI/LangChain backend.
 
 - General chat with conversation history
 - Template-based chat with backend-defined dynamic fields
+- Review Analysis screen comparing structured results from multiple providers
 - Gemini, Groq, and Mistral model selection
 - POST response streaming through an SSE parser built on `fetch()`
 - Expandable response token, latency, finish-reason, and raw metadata details
